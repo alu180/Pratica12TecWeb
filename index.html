@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — Minha Biblioteca</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <nav>
+    <a class="logo" href="index.html">📚 Minha Biblioteca</a>
+    <ul>
+      <li><a href="index.html">Login</a></li>
+      <li><a href="cadastro.html">Cadastro</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <h1>Bem-vindo!</h1>
+    <p class="subtitle">Faça login para acessar sua lista de livros favoritos.</p>
+
+    <div id="alerta" class="alert alert-error"></div>
+
+    <form id="formLogin" novalidate>
+
+      <div class="form-group">
+        <label for="username">Nome de usuário</label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          placeholder="Digite seu usuário"
+          autocomplete="username"
+        />
+        <span class="error-msg" id="erroUsername"></span>
+      </div>
+
+      <div class="form-group">
+        <label for="senha">Senha</label>
+        <input
+          type="password"
+          id="senha"
+          name="senha"
+          placeholder="Digite sua senha"
+          autocomplete="current-password"
+        />
+        <span class="error-msg" id="erroSenha"></span>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Entrar</button>
+    </form>
+
+    <div class="link-area">
+      Não tem uma conta? <a href="cadastro.html">Cadastre-se aqui</a>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    const formLogin    = document.getElementById("formLogin");
+    const inputUser    = document.getElementById("username");
+    const inputSenha   = document.getElementById("senha");
+    const erroUsername = document.getElementById("erroUsername");
+    const erroSenha    = document.getElementById("erroSenha");
+    const alerta       = document.getElementById("alerta");
+
+    // Limpa erros ao digitar
+    inputUser.addEventListener("input", () => {
+      inputUser.classList.remove("error");
+      erroUsername.textContent = "";
+    });
+
+    inputSenha.addEventListener("input", () => {
+      inputSenha.classList.remove("error");
+      erroSenha.textContent = "";
+    });
+
+    formLogin.addEventListener("submit", function (e) {
+      e.preventDefault();
+      let valido = true;
+
+      // Validação: usuário
+      if (!inputUser.value.trim()) {
+        inputUser.classList.add("error");
+        erroUsername.textContent = "Informe o nome de usuário.";
+        valido = false;
+      }
+
+      // Validação: senha
+      if (!inputSenha.value) {
+        inputSenha.classList.add("error");
+        erroSenha.textContent = "Informe a senha.";
+        valido = false;
+      }
+
+      if (!valido) return;
+
+      // Tenta fazer login
+      const resultado = fazerLogin(inputUser.value, inputSenha.value);
+
+      if (!resultado.ok) {
+        alerta.textContent = resultado.msg;
+        alerta.classList.add("show");
+        return;
+      }
+
+      alerta.classList.remove("show");
+      // Redireciona para a listagem
+      window.location.href = "listagem.html";
+    });
+  </script>
+
+</body>
+</html>
