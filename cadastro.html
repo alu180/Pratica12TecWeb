@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cadastro — Minha Biblioteca</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <nav>
+    <a class="logo" href="index.html">📚 Minha Biblioteca</a>
+    <ul>
+      <li><a href="index.html">Login</a></li>
+      <li><a href="cadastro.html">Cadastro</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <h1>Criar conta</h1>
+    <p class="subtitle">Preencha os campos abaixo para se cadastrar.</p>
+
+    <div id="alerta" class="alert"></div>
+
+    <form id="formCadastro" novalidate>
+
+      <div class="form-group">
+        <label for="username">Nome de usuário</label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          placeholder="Escolha um nome de usuário"
+          autocomplete="username"
+          maxlength="30"
+        />
+        <span class="error-msg" id="erroUsername"></span>
+      </div>
+
+      <div class="form-group">
+        <label for="senha">Senha</label>
+        <input
+          type="password"
+          id="senha"
+          name="senha"
+          placeholder="Crie uma senha (mín. 4 caracteres)"
+          autocomplete="new-password"
+        />
+        <span class="error-msg" id="erroSenha"></span>
+      </div>
+
+      <div class="form-group">
+        <label for="confirmarSenha">Confirmar senha</label>
+        <input
+          type="password"
+          id="confirmarSenha"
+          name="confirmarSenha"
+          placeholder="Repita a senha"
+          autocomplete="new-password"
+        />
+        <span class="error-msg" id="erroConfirmar"></span>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Cadastrar</button>
+    </form>
+
+    <div class="link-area">
+      Já tem uma conta? <a href="index.html">Faça login</a>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    const form           = document.getElementById("formCadastro");
+    const inputUser      = document.getElementById("username");
+    const inputSenha     = document.getElementById("senha");
+    const inputConfirmar = document.getElementById("confirmarSenha");
+    const erroUsername   = document.getElementById("erroUsername");
+    const erroSenha      = document.getElementById("erroSenha");
+    const erroConfirmar  = document.getElementById("erroConfirmar");
+    const alerta         = document.getElementById("alerta");
+
+    // Limpa erros ao digitar
+    inputUser.addEventListener("input", () => {
+      inputUser.classList.remove("error");
+      erroUsername.textContent = "";
+    });
+
+    inputSenha.addEventListener("input", () => {
+      inputSenha.classList.remove("error");
+      erroSenha.textContent = "";
+    });
+
+    inputConfirmar.addEventListener("input", () => {
+      inputConfirmar.classList.remove("error");
+      erroConfirmar.textContent = "";
+    });
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      let valido = true;
+
+      // Validação: usuário
+      if (!inputUser.value.trim()) {
+        inputUser.classList.add("error");
+        erroUsername.textContent = "Informe um nome de usuário.";
+        valido = false;
+      } else if (inputUser.value.trim().length < 3) {
+        inputUser.classList.add("error");
+        erroUsername.textContent = "O nome de usuário deve ter ao menos 3 caracteres.";
+        valido = false;
+      }
+
+      // Validação: senha
+      if (!inputSenha.value) {
+        inputSenha.classList.add("error");
+        erroSenha.textContent = "Crie uma senha.";
+        valido = false;
+      } else if (inputSenha.value.length < 4) {
+        inputSenha.classList.add("error");
+        erroSenha.textContent = "A senha deve ter ao menos 4 caracteres.";
+        valido = false;
+      }
+
+      // Validação: confirmação de senha
+      if (!inputConfirmar.value) {
+        inputConfirmar.classList.add("error");
+        erroConfirmar.textContent = "Confirme a senha.";
+        valido = false;
+      } else if (inputConfirmar.value !== inputSenha.value) {
+        inputConfirmar.classList.add("error");
+        erroConfirmar.textContent = "As senhas não coincidem.";
+        valido = false;
+      }
+
+      if (!valido) return;
+
+      // Tenta cadastrar
+      const resultado = cadastrarUsuario(inputUser.value, inputSenha.value);
+
+      if (!resultado.ok) {
+        alerta.textContent = resultado.msg;
+        alerta.className = "alert alert-error show";
+        return;
+      }
+
+      // Sucesso: mostra mensagem e redireciona para login
+      alerta.textContent = "Conta criada com sucesso! Redirecionando para o login…";
+      alerta.className = "alert alert-success show";
+      form.reset();
+
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 1800);
+    });
+  </script>
+
+</body>
+</html>
