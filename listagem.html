@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meus Livros — Minha Biblioteca</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <nav>
+    <a class="logo" href="listagem.html">📚 Minha Biblioteca</a>
+    <div class="user-bar">
+      <span id="nomeUsuario"></span>
+      <button class="btn-logout" onclick="logout()">Sair</button>
+    </div>
+  </nav>
+
+  <div class="container wide">
+
+    <div class="list-header">
+      <div>
+        <h1>Meus livros favoritos</h1>
+        <p class="subtitle">Sua lista pessoal de leituras favoritas.</p>
+      </div>
+    </div>
+
+    <div id="alertaLista" class="alert"></div>
+
+    <!-- Lista de livros -->
+    <ul class="book-list" id="listaLivros"></ul>
+
+    <!-- Formulário para adicionar ou editar -->
+    <div class="form-section">
+      <h2 id="tituloForm">➕ Adicionar livro</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="inputTitulo">Título</label>
+          <input
+            type="text"
+            id="inputTitulo"
+            placeholder="Ex: Global era of star trekking"
+            maxlength="100"
+          />
+          <span class="error-msg" id="erroTitulo"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="inputAutor">Autor</label>
+          <input
+            type="text"
+            id="inputAutor"
+            placeholder="Ex: high mountain and ground distant"
+            maxlength="80"
+          />
+          <span class="error-msg" id="erroAutor"></span>
+        </div>
+      </div>
+
+      <div class="form-buttons">
+        <button class="btn btn-primary" id="btnSalvar" onclick="salvarLivro()">
+          Salvar
+        </button>
+        <button class="btn btn-secondary" id="btnCancelar" onclick="cancelarEdicao()" style="display:none;">
+          Cancelar
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    // Proteção de rota 
+    verificarLogin();
+
+    // Exibe nome do usuário logado 
+    document.getElementById("nomeUsuario").textContent =
+      "Olá, " + state.usuarioLogado + "!";
+
+    // Referências DOM 
+    const listaEl     = document.getElementById("listaLivros");
+    const inputTitulo = document.getElementById("inputTitulo");
+    const inputAutor  = document.getElementById("inputAutor");
+    const erroTitulo  = document.getElementById("erroTitulo");
+    const erroAutor   = document.getElementById("erroAutor");
+    const alertaLista = document.getElementById("alertaLista");
+    const tituloForm  = document.getElementById("tituloForm");
+    const btnCancelar = document.getElementById("btnCancelar");
+
+    let modoEdicao  = false;
+    let idEmEdicao  = null;
+
+    // Renderização 
+    function renderizarLista() {
+      listaEl.innerHTML = "";
+
+      state.livros.forEach((livro, index) => {
+        const li = document.createElement("li");
+        li.className = "book-item";
+        li.dataset.id = livro.id;
+
+        li.innerHTML = `
+          <div class="book-info">
+            <span class="book-number">${index + 1}.</span>
+            <div>
+              <div class="book-title">${escaparHTML(livro.titulo)}</div>
+              <div class="book-author">${escaparHTML(livro.autor)}</div>
+            </div>
+          </div>
+          <div class="book-actions">
+            <button class="btn btn-edit" onclick="iniciarEdicao(${livro.id})">Editar</button>
+            <button class="btn btn-danger" onclick="excluirLivro(${livro.id})">Remover</button>
+          </div>
+        `;
+
+        listaEl.appendChild(li);
+      });
+    }
+
+    //  Salvar (adicionar ou editar) 
+    function salvarLivro() {
+      let valido = true;
+
+      // Limpa erros anteriores
+      inputTitulo.classList.remove("error");
+      inputAutor.classList.remove("error");
+      erroTitulo.textContent = "";
+      erroAutor.textContent  = "";
+
+      if (!inputTitulo.value.trim()) {
+        inputTitulo.classList.add("error");
+        erroTitulo.textContent = "Informe o título do livro.";
+        valido = false;
+      }
+
+      if (!inputAutor.value.trim()) {
+        inputAutor.classList.add("error");
+        erroAutor.textContent = "Informe o autor do livro.";
+        valido = false;
+      }
+
+      if (!valido) return;
+
+      if (modoEdicao) {
+        // Editar livro existente
+        const resultado = editarLivro(idEmEdicao, inputTitulo.value, inputAutor.value);
+        if (!resultado.ok) {
+          mostrarAlerta(resultado.msg, "error");
+          return;
+        }
+        mostrarAlerta("Livro atualizado com sucesso!", "success");
+        cancelarEdicao();
+      } else {
+        // Adicionar novo livro
+        const resultado = adicionarLivro(inputTitulo.value, inputAutor.value);
+        if (!resultado.ok) {
+          mostrarAlerta(resultado.msg, "error");
+          return;
+        }
+        mostrarAlerta("Livro adicionado à sua lista!", "success");
+        inputTitulo.value = "";
+        inputAutor.value  = "";
+      }
+
+      renderizarLista();
+    }
+
+    //  Iniciar modo edição 
+    function iniciarEdicao(id) {
+      const livro = buscarLivro(id);
+      if (!livro) return;
+
+      modoEdicao         = true;
+      idEmEdicao         = id;
+      inputTitulo.value  = livro.titulo;
+      inputAutor.value   = livro.autor;
+      tituloForm.textContent = "✏️ Editar livro";
+      btnCancelar.style.display = "inline-block";
+
+      // Scroll para o formulário
+      document.querySelector(".form-section").scrollIntoView({ behavior: "smooth" });
+    }
+
+    //  Cancelar edição 
+    function cancelarEdicao() {
+      modoEdicao         = false;
+      idEmEdicao         = null;
+      inputTitulo.value  = "";
+      inputAutor.value   = "";
+      erroTitulo.textContent = "";
+      erroAutor.textContent  = "";
+      inputTitulo.classList.remove("error");
+      inputAutor.classList.remove("error");
+      tituloForm.textContent = "➕ Adicionar livro";
+      btnCancelar.style.display = "none";
+    }
+
+    //  Excluir livro 
+    function excluirLivro(id) {
+      if (!confirm("Tem certeza que deseja remover este livro da lista?")) return;
+      removerLivro(id);
+      if (modoEdicao && idEmEdicao === id) cancelarEdicao();
+      renderizarLista();
+      mostrarAlerta("Livro removido da lista.", "success");
+    }
+
+    // Alerta
+    function mostrarAlerta(msg, tipo) {
+      alertaLista.textContent = msg;
+      alertaLista.className   = `alert alert-${tipo} show`;
+      setTimeout(() => alertaLista.classList.remove("show"), 3000);
+    }
+
+    // Escape HTML (segurança básica)─
+    function escaparHTML(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    // Inicializa a lista
+    renderizarLista();
+
+    // Limpa erros ao digitar
+    inputTitulo.addEventListener("input", () => {
+      inputTitulo.classList.remove("error");
+      erroTitulo.textContent = "";
+    });
+
+    inputAutor.addEventListener("input", () => {
+      inputAutor.classList.remove("error");
+      erroAutor.textContent = "";
+    });
+  </script>
+
+</body>
+</html>
