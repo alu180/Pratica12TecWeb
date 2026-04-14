@@ -3,7 +3,17 @@
 fiz a aplicação web feita como exercício da disciplina de Tecnologia Web. Permite criar uma conta, fazer login e gerenciar uma lista pessoal de livros favoritos.
 
 
- Como usar o sistema
+## Como executar localmente
+
+Inicie o servidor de desenvolvimento:
+
+npm run dev
+
+
+
+
+
+Como usar o sistema
 
  1 Página de Login (`index.html`)
 A aplicação começa na tela de login. Se o usuario ainda não tem uma conta, clique em **"Cadastre-se aqui"** para criar uma.
